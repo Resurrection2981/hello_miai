@@ -4,7 +4,7 @@
   "documentation": "https://github.com/Resurrection2981/hello_miai",
   "dependencies": [],
   "codeowners": [],
-  "requirements": []
+  "requirements": [],
   "version": "1.0.1",
   "iot_class": "cloud_push"
 }
