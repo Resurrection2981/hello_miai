@@ -1,4 +1,16 @@
-# 改版
+# Send TTS to MiSpeaker from Home Assistant
+
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
+
+## 说明
+
+> 原项目：<https://github.com/harepo/hello_miai>
+> 
+> 原项目不支持最新的 HACS 安装，做了一些小修改。
+> 
+
+
+## 介绍
 
 配置例子,填写绑定小爱音箱的用户账号信息：
 
