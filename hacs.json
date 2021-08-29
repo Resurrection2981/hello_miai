@@ -2,7 +2,7 @@
     "name": "hello_miai",
     "content_in_root": false,
     "country": "CN",
-    "render_readme": false,
+    "render_readme": true,
     "iot_class": "cloud_push"
     "domains": ["tts"]
  }
