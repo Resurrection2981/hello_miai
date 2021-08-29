@@ -1,6 +1,8 @@
  {
-   "name": "hello_miai",
-   "country": "CN",
-   "render_readme": false,
-   "domains": ["tts"]
+    "name": "hello_miai",
+    "content_in_root": false,
+    "country": "CN",
+    "render_readme": false,
+    "iot_class": "cloud_push"
+    "domains": ["tts"]
  }
