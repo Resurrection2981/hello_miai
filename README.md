@@ -1,4 +1,4 @@
-# Send TTS to MiSpeaker from Home Assistant
+# MiSpeaker Webhook from Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
@@ -8,6 +8,9 @@
 > 
 > 原项目不支持最新的 HACS 安装，做了一些小修改。
 > 
+> 根据 https://bbs.hassbian.com/thread-3669-124-5.html @ling281021799 的方法修复登录失败的问题
+> 
+> 感谢以上大佬
 
 
 ## 介绍
