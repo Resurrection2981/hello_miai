@@ -1,11 +1,7 @@
-import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
 import json
+import urllib
 import requests
-import os
-import re
-import random
-import string
+import os, re, random, string
 import hashlib
 import time
 import base64
@@ -13,8 +9,8 @@ import hass_frontend
 from urllib import parse
 from threading import Thread, Event
 
-
 import logging
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -61,8 +57,7 @@ class xiaomi_tts:
         """Assist user with configuring the Fitbit dev application."""
         configurator = self.hass.components.configurator
         try:
-            self.hass.components.configurator.request_done(
-                self._CONFIGURING.pop("MIAI"))
+            self.hass.components.configurator.request_done(self._CONFIGURING.pop("MIAI"))
         except:
             pass
 
@@ -82,8 +77,7 @@ class xiaomi_tts:
             else:
                 _LOGGER.error(self._serviceLoginAuth2_json)
             if self.Service_Token != None and self.deviceIds != None:
-                self.hass.components.configurator.request_done(
-                    self._CONFIGURING.pop("MIAI"))
+                self.hass.components.configurator.request_done(self._CONFIGURING.pop("MIAI"))
                 self.login_resutl = True
 
         description = """请输入验证码"""
@@ -114,17 +108,17 @@ class xiaomi_tts:
                     if self.Service_Token != None and self.deviceIds != None:
                         self.login_resutl = True
                 elif self._serviceLoginAuth2_json['code'] == 87001:
-                    self._headers['Cookie'] = self._headers['Cookie'] + \
-                        '; pwdToken={}'.format(self._cookies['pwdToken'])
+                    self._headers['Cookie'] = self._headers['Cookie'] + '; pwdToken={}'.format(
+                        self._cookies['pwdToken'])
                     path = os.path.dirname(hass_frontend.__file__)
                     try:
                         current_time = int(round(time.time() * 1000))
-                        r = self._request.get('https://account.xiaomi.com/pass/getCode?icodeType=login&{}'.format(
-                            current_time), headers=self._headers, timeout=3, cookies=self._cookies, verify=False)
-                        self._cookies['ick'] = self._request.cookies.get_dict()[
-                            'ick']
-                        if os.access(path+'/images', os.W_OK):
-                            with open(path+'/images'+'/miai{}.jpg'.format(current_time), 'wb') as f:
+                        r = self._request.get(
+                            'https://account.xiaomi.com/pass/getCode?icodeType=login&{}'.format(current_time),
+                            headers=self._headers, timeout=3, cookies=self._cookies, verify=False)
+                        self._cookies['ick'] = self._request.cookies.get_dict()['ick']
+                        if os.access(path + '/images', os.W_OK):
+                            with open(path + '/images' + '/miai{}.jpg'.format(current_time), 'wb') as f:
                                 f.write(r.content)
                                 f.close()
                             self.request_app_setup(current_time)
@@ -133,18 +127,17 @@ class xiaomi_tts:
                     except BaseException as e:
                         _LOGGER.warning(e)
 
+
                 elif self._serviceLoginAuth2_json['code'] == 70016:
                     _LOGGER.error('incorrect password')
 
     def _get_sign(self):
-        url = 'https://account.xiaomi.com/pass/serviceLogin?callback=https%3A%2F%2Faccount.xiaomi.com%2Fsts%2Foauth%3Fsign%3Dt1ErD4mAHg8WlXXrbezQT8%252F6%252BjI%253D%26followup%3Dhttps%253A%252F%252Faccount.xiaomi.com%252Foauth2%252Fauthorize%253Fclient_id%253D2882303761517851828%2526response_type%253Dtoken%2526state%253Dproduction%2526skip_confirm%253Dfalse%2526redirect_uri%253Dhttp%25253A%25252F%25252Fdebugger.iot.mi.com%25252Fcallback%25252Fxiaomi%2526nonce%253DVD0oCEj1vGkBmdjF%2526sign%253DobppTRajlpAdGoqWYXJSMNllIS4%25253D%2526scope%253D1%2525203%2525206000%2526_sas%253Dtrue%26sid%3Doauth2.0&sid=oauth2.0&lsrp_appName=%E4%BD%BF%E7%94%A8%E5%B0%8F%E7%B1%B3%E5%B8%90%E5%8F%B7%E7%99%BB%E5%BD%95%24%7B%E8%AE%BE%E5%A4%87%E8%B0%83%E8%AF%95%E5%99%A8%7D%24&_customDisplay=20&scope=1%206000&client_id=2882303761517851828&_locale=zh_CN&_ssign=2%26V1_oauth2.0%26LwRoUMFKzmTZC3WY%2BEa2KA7EZDY%3D'
-        pattern = re.compile(r'_sign":"(.*?)",')
+        url = 'https://account.xiaomi.com/pass/serviceLogin'
+        pattern = re.compile(r'_sign=(.*?)&')
         try:
-            r = self._request.get(
-                url, headers=self._headers, timeout=3, verify=False)
-            # self._cookies['pass_trace'] = self._request.cookies.get_dict()[
-            #     'pass_trace']
-            self._sign = pattern.findall(r.text)[0]
+            r = self._request.get(url, headers=self._headers, timeout=3, verify=False)
+            self._cookies['pass_trace'] = self._request.cookies.get_dict().get('pass_trace')
+            self._sign = pattern.findall(r.url)[0]
             return True
         except BaseException as e:
             _LOGGER.warning(e)
@@ -157,8 +150,7 @@ class xiaomi_tts:
         self._headers['Origin'] = 'https://account.xiaomi.com'
         self._headers['Referer'] = 'https://account.xiaomi.com/pass/serviceLogin?sid=micoapi'
         # self._headers['Cookie']='pass_ua={}; deviceId={}; pass_trace={}; uLocale={}; JSESSIONID={}'.format(self._cookies['pass_ua'],self._cookies['deviceId'],self._cookies['pass_trace'],self._cookies['uLocale'],self._cookies['JSESSIONID'])
-        # self._headers['Cookie'] = 'pass_trace={};'.format(
-        #     self._cookies['pass_trace'])
+        self._headers['Cookie'] = 'pass_trace={};'.format(self._cookies['pass_trace'])
 
         auth_post_data = {'_json': 'true',
                           '_sign': self._sign,
@@ -171,15 +163,12 @@ class xiaomi_tts:
 
         try:
             if captCode != None:
-                url = 'https://account.xiaomi.com/pass/serviceLoginAuth2?_dc={}'.format(
-                    int(round(time.time() * 1000)))
+                url = 'https://account.xiaomi.com/pass/serviceLoginAuth2?_dc={}'.format(int(round(time.time() * 1000)))
                 auth_post_data['captCode'] = captCode
-                self._headers['Cookie'] = self._headers['Cookie'] + \
-                    '; ick={}'.format(self._cookies['ick'])
-            r = self._request.post(url, headers=self._headers, data=auth_post_data,
-                                   timeout=3, cookies=self._cookies, verify=False)
-            self._cookies['pwdToken'] = self._request.cookies.get_dict()[
-                'passToken']
+                self._headers['Cookie'] = self._headers['Cookie'] + '; ick={}'.format(self._cookies['ick'])
+            r = self._request.post(url, headers=self._headers, data=auth_post_data, timeout=3, cookies=self._cookies,
+                                   verify=False)
+            self._cookies['pwdToken'] = self._request.cookies.get_dict()['passToken']
             self._serviceLoginAuth2_json = json.loads(r.text[11:])
             return True
         except BaseException as e:
@@ -187,20 +176,17 @@ class xiaomi_tts:
             _LOGGER.warning(e)
 
     def _login_miai(self):
-        serviceToken = "nonce={}&{}".format(
-            self._serviceLoginAuth2_json['nonce'], self._serviceLoginAuth2_json['ssecurity'])
+        serviceToken = "nonce={}&{}".format(self._serviceLoginAuth2_json['nonce'],
+                                            self._serviceLoginAuth2_json['ssecurity'])
         serviceToken_sha1 = hashlib.sha1(serviceToken.encode('utf-8')).digest()
         base64_serviceToken = base64.b64encode(serviceToken_sha1)
         loginmiai_header = {'User-Agent': 'MISoundBox/1.4.0,iosPassportSDK/iOS-3.2.7 iOS/11.2.5',
                             'Accept-Language': 'zh-cn', 'Connection': 'keep-alive'}
-        url = self._serviceLoginAuth2_json['location'] + \
-            "&clientSign="+parse.quote(base64_serviceToken.decode())
+        url = self._serviceLoginAuth2_json['location'] + "&clientSign=" + parse.quote(base64_serviceToken.decode())
         try:
-            r = self._request.get(
-                url, headers=loginmiai_header, timeout=3, verify=False)
+            r = self._request.get(url, headers=loginmiai_header, timeout=3, verify=False)
             if r.status_code == 200:
-                self._Service_Token = self._request.cookies.get_dict()[
-                    'serviceToken']
+                self._Service_Token = self._request.cookies.get_dict()['serviceToken']
                 self.userId = self._request.cookies.get_dict()['userId']
                 return True
             else:
@@ -211,13 +197,11 @@ class xiaomi_tts:
 
     def _get_deviceId(self):
         url = 'https://api.mina.mi.com/admin/v2/device_list?master=1&requestId=CdPhDBJMUwAhgxiUvOsKt0kwXThAvY'
-        get_deviceId_header = {'Cookie': 'userId={};serviceToken={}'.format(
-            self.userId, self._Service_Token)}
+        get_deviceId_header = {'Cookie': 'userId={};serviceToken={}'.format(self.userId, self._Service_Token)}
         try:
-            r = self._request.get(
-                url, headers=get_deviceId_header, timeout=3, verify=False)
-            model = {"Cookie": "userId={};serviceToken={}".format(
-                self.userId, self._Service_Token), "deviceId": json.loads(r.text)['data']}
+            r = self._request.get(url, headers=get_deviceId_header, timeout=3, verify=False)
+            model = {"Cookie": "userId={};serviceToken={}".format(self.userId, self._Service_Token),
+                     "deviceId": json.loads(r.text)['data']}
             self.Service_Token = model['Cookie']
             self.deviceIds = model['deviceId']
             return True
@@ -228,9 +212,9 @@ class xiaomi_tts:
     def _text_to_speech(self, text, tts_cookie, deviceIds_miai, num=0):
         try:
             url = "https://api.mina.mi.com/remote/ubus?deviceId={}&message=%7B%22text%22%3A%22{}%22%7D&method=text_to_speech&path=mibrain&requestId={}".format(
-                self.deviceIds_miai[num]['deviceID'], parse.quote(text), ''.join(random.sample(string.ascii_letters + string.digits, 30)))
-            r = self._request.post(
-                url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
+                self.deviceIds_miai[num]['deviceID'], parse.quote(text),
+                ''.join(random.sample(string.ascii_letters + string.digits, 30)))
+            r = self._request.post(url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
             if json.loads(r.text)['message'] == 'Success':
                 return True
             elif json.loads(r.text)['error'] == 'ubus error':
@@ -258,9 +242,9 @@ class xiaomi_tts:
             volume = 0
         try:
             url = "https://api.mina.mi.com/remote/ubus?deviceId={}&message=%7b%22volume%22%3a{}%2c%22media%22%3a%22app_ios%22%7d&method=player_set_volume&path=mediaplayer&requestId={}".format(
-                self.deviceIds_miai[num]['deviceID'], int(volume), ''.join(random.sample(string.ascii_letters + string.digits, 30)))
-            r = self._request.post(
-                url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
+                self.deviceIds_miai[num]['deviceID'], int(volume),
+                ''.join(random.sample(string.ascii_letters + string.digits, 30)))
+            r = self._request.post(url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
             if json.loads(r.text)['message'] == 'Success':
                 return True
             elif json.loads(r.text)['error'] == 'ubus error':
@@ -284,9 +268,9 @@ class xiaomi_tts:
 
         try:
             url = "https://api.mina.mi.com/remote/ubus?deviceId={}&message=%7b%22action%22%3a%22{}%22%2c%22media%22%3a%22app_ios%22%7d&method=player_play_operation&path=mediaplayer&requestId={}".format(
-                self.deviceIds_miai[num]['deviceID'], operation, ''.join(random.sample(string.ascii_letters + string.digits, 30)))
-            r = self._request.post(
-                url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
+                self.deviceIds_miai[num]['deviceID'], operation,
+                ''.join(random.sample(string.ascii_letters + string.digits, 30)))
+            r = self._request.post(url, headers={'Cookie': tts_cookie}, timeout=10, verify=False)
             if json.loads(r.text)['message'] == 'Success':
                 return True
             elif json.loads(r.text)['error'] == 'ubus error':
@@ -305,6 +289,9 @@ class xiaomi_tts:
             _LOGGER.warning(e)
         return True
 
+
+import voluptuous as vol
+import homeassistant.helpers.config_validation as cv
 
 CONF_USER = 'miid'
 CONF_PASSWORD = 'password'
@@ -340,7 +327,6 @@ SERVICE_SCHEMA_FOR_PLAY_OPERATION = vol.Schema({
     vol.Optional(CONF_TO_NUM): cv.string,
 })
 
-
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
         vol.Required(CONF_USER): cv.string,
@@ -364,11 +350,9 @@ def setup(hass, config):
                                                          client.deviceIds_miai, int(msg_queue[0]['to_num']))
                     if send_finish == True:
                         try:
-                            time.sleep(
-                                len(msg_queue[0]['msg'])*DEFAULT_MIAI_SPEED+int(msg_queue[0]['wait_time']))
+                            time.sleep(len(msg_queue[0]['msg']) * DEFAULT_MIAI_SPEED + int(msg_queue[0]['wait_time']))
                         except:
-                            time.sleep(
-                                len(msg_queue[0]['msg'])*DEFAULT_MIAI_SPEED)
+                            time.sleep(len(msg_queue[0]['msg']) * DEFAULT_MIAI_SPEED)
                         msg_queue.pop(0)
 
                     else:
@@ -377,7 +361,8 @@ def setup(hass, config):
                 else:
                     time.sleep(1)
             else:
-                time.sleep(1)
+                client._LoginByPassord()
+                time.sleep(10)
 
     def send_message(call):
         msg_queue = []
@@ -389,8 +374,7 @@ def setup(hass, config):
         else:
             if not client._text_to_speech(message, client.Service_Token_Cookie, client.deviceIds_miai, int(to_num)):
                 client._LoginByPassord()
-                client._text_to_speech(
-                    message, client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
+                client._text_to_speech(message, client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
 
     def add_msg2queue(call):
         to_num = call.data.get(CONF_TO_NUM, DEFAULT_MIAI_NUM)
@@ -401,8 +385,7 @@ def setup(hass, config):
         else:
             to_num = call.data.get(CONF_TO_NUM, DEFAULT_MIAI_NUM)
             message = call.data.get(ATTR_MESSAGE)
-            msg_queue.append(
-                {'msg': message, 'to_num': to_num, 'wait_time': wait_time})
+            msg_queue.append({'msg': message, 'to_num': to_num, 'wait_time': wait_time})
 
     def player_set_volume(call):
 
@@ -414,8 +397,7 @@ def setup(hass, config):
         else:
             if not client.player_set_volume(int(vol), client.Service_Token_Cookie, client.deviceIds_miai, int(to_num)):
                 client._LoginByPassord()
-                client.player_set_volume(
-                    int(vol), client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
+                client.player_set_volume(int(vol), client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
 
     def play_operation(call):
 
@@ -424,10 +406,10 @@ def setup(hass, config):
         if client.Service_Token_Cookie == None or client.deviceIds_miai == None:
             _LOGGER.error("还未登录")
         else:
-            if not client.player_play_operation('play', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num)):
+            if not client.player_play_operation('play', client.Service_Token_Cookie, client.deviceIds_miai,
+                                                int(to_num)):
                 client._LoginByPassord()
-                client.player_play_operation(
-                    'play', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
+                client.player_play_operation('play', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
 
     def pause_operation(call):
 
@@ -436,10 +418,10 @@ def setup(hass, config):
         if client.Service_Token_Cookie == None or client.deviceIds_miai == None:
             _LOGGER.error("还未登录")
         else:
-            if not client.player_play_operation('pause', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num)):
+            if not client.player_play_operation('pause', client.Service_Token_Cookie, client.deviceIds_miai,
+                                                int(to_num)):
                 client._LoginByPassord()
-                client.player_play_operation(
-                    'pause', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
+                client.player_play_operation('pause', client.Service_Token_Cookie, client.deviceIds_miai, int(to_num))
 
     def listen():
         """Start listening."""
